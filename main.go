@@ -6,6 +6,7 @@ import (
   "io/ioutil"
   "bytes"
   "gopkg.in/headzoo/surf.v1"
+  "github.com/PuerkitoBio/goquery"
 )
 
 func createHeaders(test []*http.Cookie) string {
@@ -26,7 +27,7 @@ func login(test []*http.Cookie) {
   // var lol = ""
   // lol += test
 
-  fmt.Println(createHeaders(test))
+  // fmt.Println(createHeaders(test))
 
   req.Header.Add("Cookie", createHeaders(test))
 
@@ -60,6 +61,12 @@ func login(test []*http.Cookie) {
 func getCookies() []*http.Cookie {
   browser := surf.NewBrowser()
   err := browser.Open("http://puregym.com")
+  browser.Dom()
+
+  // browser.Dom().Find("input").Each(func(_ int, s *goquery.Selection) {
+  //   fmt.Println(s.OuterHtml())
+  // })
+  // fmt.Println(test)
   cookies := browser.SiteCookies()
   if err != nil {
     fmt.Println("error", err)
