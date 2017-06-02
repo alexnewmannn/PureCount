@@ -8,12 +8,27 @@ import (
   "gopkg.in/headzoo/surf.v1"
 )
 
+func createHeaders(test []*http.Cookie) string {
+  var lol = ""
+  for _, item := range test {
+    lol += item.String() + ";"
+  }
+
+  return lol
+}
+
 func login(test []*http.Cookie) {
-  fmt.Println(test)
   var jsonStr = []byte(`{"associateAccount":"false","email":"alexmnewdman95@gmail.com","pin":"32250194"}`)
   req, err := http.NewRequest("POST", "https://www.puregym.com/api/members/login/", bytes.NewBuffer(jsonStr))
 
-  req.Header.Add("Cookie", test)
+  createHeaders(test)
+
+  // var lol = ""
+  // lol += test
+
+  fmt.Println(createHeaders(test))
+
+  req.Header.Add("Cookie", createHeaders(test))
 
   req.Header.Set("Origin", "https://www.puregym.com")
   req.Header.Set("Accept-Encoding", "gzip, deflate, br")
