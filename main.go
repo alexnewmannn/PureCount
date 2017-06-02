@@ -7,8 +7,7 @@ import (
   "bytes"
 )
 
-func main() {
-  fmt.Printf("Hello, world.\n")
+func login() {
   var jsonStr = []byte(`{"associateAccount":"false","email":"alexmnewman95@gmail.com","pin":"5351sd0560"}`)
   req, err := http.NewRequest("POST", "https://www.puregym.com/api/members/login/", bytes.NewBuffer(jsonStr))
 
@@ -44,4 +43,9 @@ func main() {
   body, _ := ioutil.ReadAll(resp.Body)
   fmt.Println("fuck", req)
   fmt.Println("response Body:", string(body))
+}
+
+func main() {
+  fmt.Printf("Hello, world.\n")
+  login()
 }
