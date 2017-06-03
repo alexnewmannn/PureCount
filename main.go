@@ -7,6 +7,8 @@ import (
   "bytes"
   "gopkg.in/headzoo/surf.v1"
   "github.com/headzoo/surf/browser"
+  "compress/gzip"
+  "github.com/davecgh/go-spew/spew"
 )
 
 func setCookieHeader(siteCookies []*http.Cookie) string {
@@ -18,11 +20,12 @@ func setCookieHeader(siteCookies []*http.Cookie) string {
   return cookies
 }
 
-func login(cookies []*http.Cookie, token string) {
+func login(cookies []*http.Cookie, token string, browser *browser.Browser) {
+  formattedCookies := setCookieHeader(cookies)
   var jsonStr = []byte(`
     {
       "associateAccount":"false",
-      "email":"alexmnewsdsdman95@gmail.com",
+      "email":"alexmnewman95@gmail.com",
       "pin":"53510560"
     }
   `)
@@ -30,7 +33,7 @@ func login(cookies []*http.Cookie, token string) {
   req, err := http.NewRequest("POST", "https://www.puregym.com/api/members/login/", bytes.NewBuffer(jsonStr))
 
   req.Header = http.Header{
-    "Cookie": []string{setCookieHeader(cookies)},
+    "Cookie": []string{formattedCookies},
     "Origin": []string{"https://puregym.com"},
     "Accept-Encoding": []string{"gzip, deflate, br"},
     "Accept-Language": []string{"en-GB,en-US;q=0.8,en;q=0.6"},
@@ -53,8 +56,11 @@ func login(cookies []*http.Cookie, token string) {
     return
   }
 
+  formattedCookies += setCookieHeader(resp.Cookies())
+
   body, _ := ioutil.ReadAll(resp.Body)
   fmt.Println("response Body:", string(body))
+  getMembers(formattedCookies, token, browser)
 }
 
 func getSite() *browser.Browser {
@@ -66,14 +72,52 @@ func getSite() *browser.Browser {
   return browser
 }
 
-func getCookies() ([]*http.Cookie, string) {
+func getCookies() ([]*http.Cookie, string, *browser.Browser) {
   browser := getSite()
 
   token, _ := browser.Dom().Find("[name='__RequestVerificationToken']").Attr("value")
   cookies := browser.SiteCookies()
 
-  return cookies, token
+  return cookies, token, browser
 }
+
+func getMembers(cookies string, token string, browser *browser.Browser) {
+  req, err := http.NewRequest("GET", "https://www.puregym.com/members/", nil)
+
+  req.Header = http.Header{
+    "Cookie": []string{cookies},
+    "Origin": []string{"https://puregym.com"},
+    "Host": []string{"https://puregym.com"},
+    "Accept-Encoding": []string{"gzip, deflate, br"},
+    "Accept-Language": []string{"en-GB,en-US;q=0.8,en;q=0.6"},
+    "X-Requested-With": []string{"XMLHttpRequest"},
+    "Pragma": []string{"no-cache"},
+    "User-Agent": []string{"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3118.0 Safari/537.36"},
+    "Upgrade-Insecure-Requests": []string{"1"},
+    "Content-Type": []string{"text/html; charset=utf-8"},
+    "Accept": []string{"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8"},
+    "Cache-Control": []string{"no-cache"},
+    "Referer": []string{"https://www.puregym.com/Login/"},
+    "__RequestVerificationToken": []string{token},
+    "DNT": []string{"1"},
+  }
+
+  client := &http.Client{}
+  resp, err := client.Do(req)
+
+  if nil!= err {
+    fmt.Println("error", err)
+    return
+  }
+
+
+  r, err := gzip.NewReader(resp.Body)
+  fmt.Println(r)
+  r.Close()
+  body, _ := ioutil.ReadAll(r)
+  spew.Dump(string(body))
+}
+
 
 func main() {
   login(getCookies())
