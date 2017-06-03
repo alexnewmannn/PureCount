@@ -7,31 +7,29 @@ import (
   "bytes"
   "gopkg.in/headzoo/surf.v1"
   "github.com/headzoo/surf/browser"
-  "reflect"
 )
 
-func createHeaders(test []*http.Cookie) string {
-  var lol = ""
-  for _, item := range test {
-    lol += item.String() + ";"
+func setCookieHeader(siteCookies []*http.Cookie) string {
+  cookies := ""
+  for _, cookie := range siteCookies {
+    cookies += cookie.String() + ";"
   }
 
-  return lol
+  return cookies
 }
 
-func login(test []*http.Cookie) {
-  var jsonStr = []byte(`{"associateAccount":"false","email":"alexmnewdman95@gmail.com","pin":"32250194"}`)
+func login(cookies []*http.Cookie, token string) {
+  var jsonStr = []byte(`
+    {
+      "associateAccount":"false",
+      "email":"alexmnewsdsdman95@gmail.com",
+      "pin":"53510560"
+    }
+  `)
+
   req, err := http.NewRequest("POST", "https://www.puregym.com/api/members/login/", bytes.NewBuffer(jsonStr))
 
-  createHeaders(test)
-
-  // var lol = ""
-  // lol += test
-
-  // fmt.Println(createHeaders(test))
-
-  req.Header.Add("Cookie", createHeaders(test))
-
+  req.Header.Add("Cookie", setCookieHeader(cookies))
   req.Header.Set("Origin", "https://www.puregym.com")
   req.Header.Set("Accept-Encoding", "gzip, deflate, br")
   req.Header.Set("Accept-Language", "en-GB,en-US;q=0.8,en;q=0.6")
@@ -43,8 +41,9 @@ func login(test []*http.Cookie) {
   req.Header.Set("Accept", "application/json, text/javascript")
   req.Header.Set("Cache-Control", "no-cache")
   req.Header.Set("Referer", "https://www.puregym.com/Login/?ReturnUrl=%2Fmembers%2F")
+
   // This is retrieved from the DOM
-  req.Header.Add("__RequestVerificationToken", "Ht3u55kSYdlooL3H_LPWIcX3Fl51bHKPr8y97w6L5WmjOp74IbRmA2LtmgVvJ0IbPaIwkEZkXjy1nWIeVpuaq9aMCfA1")
+  req.Header.Add("__RequestVerificationToken", token)
   req.Header.Set("DNT", "1")
 
   client := &http.Client{}
@@ -62,27 +61,21 @@ func login(test []*http.Cookie) {
 func getSite() *browser.Browser {
   browser := surf.NewBrowser()
   err := browser.Open("http://puregym.com")
-  fmt.Println(reflect.TypeOf(browser))
   if err != nil {
     fmt.Println("error", err)
   }
   return browser
 }
 
-func getCookies() []*http.Cookie {
+func getCookies() ([]*http.Cookie, string) {
   browser := getSite()
 
   token, _ := browser.Dom().Find("[name='__RequestVerificationToken']").Attr("value")
-  fmt.Println(token)
   cookies := browser.SiteCookies()
 
-  return cookies
+  return cookies, token
 }
 
-
 func main() {
-  fmt.Printf("Hello, world.\n")
-  // var test = getCookies()
-
   login(getCookies())
 }
