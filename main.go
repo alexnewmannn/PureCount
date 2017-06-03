@@ -29,22 +29,21 @@ func login(cookies []*http.Cookie, token string) {
 
   req, err := http.NewRequest("POST", "https://www.puregym.com/api/members/login/", bytes.NewBuffer(jsonStr))
 
-  req.Header.Add("Cookie", setCookieHeader(cookies))
-  req.Header.Set("Origin", "https://www.puregym.com")
-  req.Header.Set("Accept-Encoding", "gzip, deflate, br")
-  req.Header.Set("Accept-Language", "en-GB,en-US;q=0.8,en;q=0.6")
-  req.Header.Set("X-Requested-With", "XMLHttpRequest")
-  req.Header.Set("Connection", "keep-alive")
-  req.Header.Set("Pragma", "no-cache")
-  req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3118.0 Safari/537.36")
-  req.Header.Set("Content-Type", "application/json")
-  req.Header.Set("Accept", "application/json, text/javascript")
-  req.Header.Set("Cache-Control", "no-cache")
-  req.Header.Set("Referer", "https://www.puregym.com/Login/?ReturnUrl=%2Fmembers%2F")
-
-  // This is retrieved from the DOM
-  req.Header.Add("__RequestVerificationToken", token)
-  req.Header.Set("DNT", "1")
+  req.Header = http.Header{
+    "Cookie": []string{setCookieHeader(cookies)},
+    "Origin": []string{"https://puregym.com"},
+    "Accept-Encoding": []string{"gzip, deflate, br"},
+    "Accept-Language": []string{"en-GB,en-US;q=0.8,en;q=0.6"},
+    "X-Requested-With": []string{"XMLHttpRequest"},
+    "Pragma": []string{"no-cache"},
+    "User-Agent": []string{"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3118.0 Safari/537.36"},
+    "Content-Type": []string{"application/json"},
+    "Accept": []string{"application/json, text/javascript"},
+    "Cache-Control": []string{"no-cache"},
+    "Referer": []string{"https://www.puregym.com/Login/?ReturnUrl=%2Fmembers%2F"},
+    "__RequestVerificationToken": []string{token},
+    "DNT": []string{"1"},
+  }
 
   client := &http.Client{}
   resp, err := client.Do(req)
