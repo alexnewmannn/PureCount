@@ -9,9 +9,12 @@ import (
   "github.com/headzoo/surf/browser"
   "compress/gzip"
   "github.com/PuerkitoBio/goquery"
+  "time"
+  "encoding/json"
+  "os"
 )
 
-func setCookieHeader(siteCookies []*http.Cookie) string {
+func stringifyCookies(siteCookies []*http.Cookie) string {
   cookies := ""
   for _, cookie := range siteCookies {
     cookies += cookie.String() + ";"
@@ -20,8 +23,8 @@ func setCookieHeader(siteCookies []*http.Cookie) string {
   return cookies
 }
 
-func login(cookies []*http.Cookie, token string, browser *browser.Browser) {
-  formattedCookies := setCookieHeader(cookies)
+func login(siteCookies []*http.Cookie, token string) {
+  cookies := stringifyCookies(siteCookies)
   var jsonStr = []byte(`
     {
       "associateAccount":"false",
@@ -33,7 +36,7 @@ func login(cookies []*http.Cookie, token string, browser *browser.Browser) {
   req, err := http.NewRequest("POST", "https://www.puregym.com/api/members/login/", bytes.NewBuffer(jsonStr))
 
   req.Header = http.Header{
-    "Cookie": []string{formattedCookies},
+    "Cookie": []string{cookies},
     "Origin": []string{"https://puregym.com"},
     "Accept-Encoding": []string{"gzip, deflate, br"},
     "Accept-Language": []string{"en-GB,en-US;q=0.8,en;q=0.6"},
@@ -52,14 +55,13 @@ func login(cookies []*http.Cookie, token string, browser *browser.Browser) {
   resp, err := client.Do(req)
 
   if nil!= err {
-    fmt.Println("error", err)
+    fmt.Println("Login has failed!", err)
     return
   }
 
-  formattedCookies += setCookieHeader(resp.Cookies())
+  cookies += stringifyCookies(resp.Cookies())
 
-  // body, _ := ioutil.ReadAll(resp.Body)
-  getMembers(formattedCookies, token, browser)
+  getMembers(cookies, token)
 }
 
 func getSite() *browser.Browser {
@@ -68,19 +70,20 @@ func getSite() *browser.Browser {
   if err != nil {
     fmt.Println("error", err)
   }
+
   return browser
 }
 
-func getCookies() ([]*http.Cookie, string, *browser.Browser) {
+func getCookies() ([]*http.Cookie, string) {
   browser := getSite()
 
   token, _ := browser.Dom().Find("[name='__RequestVerificationToken']").Attr("value")
   cookies := browser.SiteCookies()
 
-  return cookies, token, browser
+  return cookies, token
 }
 
-func getMembers(cookies string, token string, browser *browser.Browser) {
+func getMembers(cookies string, token string) {
   req, err := http.NewRequest("GET", "https://www.puregym.com/members/", nil)
 
   req.Header = http.Header{
@@ -112,26 +115,28 @@ func getMembers(cookies string, token string, browser *browser.Browser) {
   r, err := gzip.NewReader(resp.Body)
   r.Close()
   body, _ := ioutil.ReadAll(r)
-
-  ioutil.WriteFile("members.html", body, 0644)
-
-  buf := bytes.NewBufferString(string(body))
-
-  doc, _ := goquery.NewDocumentFromReader(buf)
-  el := doc.Find(".heading.heading--level3.secondary-color.margin-none").Text()
-  fmt.Println(el)
-  readMembers()
+  formatData(string(body))
 }
 
-func readMembers() {
-  // r := io.Reader("members.html")
-  // html.NewTokenizer(r)
-  // browser := surf.NewBrowser()
-  // err := browser.Open("members.html")
-  // if err != nil {
-  //   fmt.Println("error", err)
-  // }
-  // fmt.Println(browser.Title())
+func getTime() string {
+  return time.Now().Format(time.RFC3339)
+}
+
+func readMembers(body string) string {
+  buf := bytes.NewBufferString(string(body))
+  doc, _ := goquery.NewDocumentFromReader(buf)
+  el := doc.Find(".heading.heading--level3.secondary-color.margin-none").Text()
+
+  return el;
+}
+
+func formatData(body string) {
+  var m = make(map[string]string)
+  m[getTime()] = readMembers(body)
+  fmt.Println(m)
+  data, _ := json.Marshal(m)
+  ioutil.WriteFile("output.json", data, 0644)
+  os.Stdout.Write(data)
 }
 
 func main() {
