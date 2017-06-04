@@ -8,7 +8,7 @@ import (
   "gopkg.in/headzoo/surf.v1"
   "github.com/headzoo/surf/browser"
   "compress/gzip"
-  "github.com/davecgh/go-spew/spew"
+  "github.com/PuerkitoBio/goquery"
 )
 
 func setCookieHeader(siteCookies []*http.Cookie) string {
@@ -58,8 +58,7 @@ func login(cookies []*http.Cookie, token string, browser *browser.Browser) {
 
   formattedCookies += setCookieHeader(resp.Cookies())
 
-  body, _ := ioutil.ReadAll(resp.Body)
-  fmt.Println("response Body:", string(body))
+  // body, _ := ioutil.ReadAll(resp.Body)
   getMembers(formattedCookies, token, browser)
 }
 
@@ -110,14 +109,30 @@ func getMembers(cookies string, token string, browser *browser.Browser) {
     return
   }
 
-
   r, err := gzip.NewReader(resp.Body)
-  fmt.Println(r)
   r.Close()
   body, _ := ioutil.ReadAll(r)
-  spew.Dump(string(body))
+
+  ioutil.WriteFile("members.html", body, 0644)
+
+  buf := bytes.NewBufferString(string(body))
+
+  doc, _ := goquery.NewDocumentFromReader(buf)
+  el := doc.Find(".heading.heading--level3.secondary-color.margin-none").Text()
+  fmt.Println(el)
+  readMembers()
 }
 
+func readMembers() {
+  // r := io.Reader("members.html")
+  // html.NewTokenizer(r)
+  // browser := surf.NewBrowser()
+  // err := browser.Open("members.html")
+  // if err != nil {
+  //   fmt.Println("error", err)
+  // }
+  // fmt.Println(browser.Title())
+}
 
 func main() {
   login(getCookies())
