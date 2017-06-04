@@ -10,8 +10,8 @@ import (
   "compress/gzip"
   "github.com/PuerkitoBio/goquery"
   "time"
-  "encoding/json"
   "os"
+  "encoding/json"
 )
 
 func stringifyCookies(siteCookies []*http.Cookie) string {
@@ -131,12 +131,63 @@ func readMembers(body string) string {
 }
 
 func formatData(body string) {
-  var m = make(map[string]string)
-  m[getTime()] = readMembers(body)
-  fmt.Println(m)
-  data, _ := json.Marshal(m)
-  ioutil.WriteFile("output.json", data, 0644)
-  os.Stdout.Write(data)
+  // var jsonBlob = []byte(`[
+  //   {"date": "` + getTime() + `", "people": "` + readMembers(body) +`"}
+  // ]`)
+  // var m = make(map[string]string)
+  // m["date"] = getTime()
+  // m["people"] = readMembers(body)
+  // data, _ := json.Marshal(m)
+  // ioutil.WriteFile("output.json", jsonBlob, 0644)
+  // os.Stdout.Write(data)
+  writeData(body)
+  // return jsonBlob
+}
+
+func writeData(body string) {
+  jsonBlob, _ := ioutil.ReadFile("./output.json")
+
+  type Animal struct {
+    Date  string
+    People string
+  }
+  // var testLol = []Animal(`[
+  //   {"Date": "` + getTime() + `", "People": "` + readMembers(body) +`"}
+  //   ]`)
+  group := Animal{
+    Date:     getTime(),
+    People:   readMembers(body),
+  }
+  var animals []Animal
+  err := json.Unmarshal(jsonBlob, &animals)
+  if err != nil {
+    fmt.Println("error:", err)
+  }
+  // fmt.Println(animals[0])
+  var test = append(animals, group)
+  b, _ := json.Marshal(test)
+
+  // fmt.Printf("%+v", animals)
+  os.Stdout.Write(b)
+  // fuck := json.Unmarshal(jsonBlob, &animals)
+  // fmt.Println(b)
+
+  ioutil.WriteFile("output.json", b, 0644)
+  //
+  //
+  // type Animal struct {
+  //   Date string
+  //   People string
+  // }
+  //
+  // fmt.Println(string(test))
+  // var animals []Animal
+  // err := json.Unmarshal(test, &animals)
+  // if err != nil {
+  //   fmt.Println("error:", err)
+  // }
+  // fmt.Printf("%+v", animals)
+//   fmt.Println(test)
 }
 
 func main() {
