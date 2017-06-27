@@ -15,6 +15,8 @@ import (
 )
 
 var port = os.Getenv("PORT")
+var user = os.Getenv("PURE_USER")
+var pin = os.Getenv("PURE_PIN")
 
 func stringifyCookies(siteCookies []*http.Cookie) string {
   cookies := ""
@@ -30,8 +32,8 @@ func login(siteCookies []*http.Cookie, token string) {
   var jsonStr = []byte(`
     {
       "associateAccount":"false",
-      "email":"alexmnewman95@gmail.com",
-      "pin":"53510560"
+      "email":"` + user + `",
+      "pin":"` + pin + `"
     }
   `)
 
