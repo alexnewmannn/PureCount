@@ -14,6 +14,8 @@ import (
   "encoding/json"
 )
 
+var port = os.Getenv("PORT")
+
 func stringifyCookies(siteCookies []*http.Cookie) string {
   cookies := ""
   for _, cookie := range siteCookies {
@@ -131,17 +133,7 @@ func readMembers(body string) string {
 }
 
 func formatData(body string) {
-  // var jsonBlob = []byte(`[
-  //   {"date": "` + getTime() + `", "people": "` + readMembers(body) +`"}
-  // ]`)
-  // var m = make(map[string]string)
-  // m["date"] = getTime()
-  // m["people"] = readMembers(body)
-  // data, _ := json.Marshal(m)
-  // ioutil.WriteFile("output.json", jsonBlob, 0644)
-  // os.Stdout.Write(data)
   writeData(body)
-  // return jsonBlob
 }
 
 func writeData(body string) {
@@ -151,9 +143,7 @@ func writeData(body string) {
     Date  string
     People string
   }
-  // var testLol = []Animal(`[
-  //   {"Date": "` + getTime() + `", "People": "` + readMembers(body) +`"}
-  //   ]`)
+
   group := Animal{
     Date:     getTime(),
     People:   readMembers(body),
@@ -163,33 +153,30 @@ func writeData(body string) {
   if err != nil {
     fmt.Println("error:", err)
   }
-  // fmt.Println(animals[0])
+
   var test = append(animals, group)
   b, _ := json.Marshal(test)
 
-  // fmt.Printf("%+v", animals)
   os.Stdout.Write(b)
-  // fuck := json.Unmarshal(jsonBlob, &animals)
-  // fmt.Println(b)
 
   ioutil.WriteFile("output.json", b, 0644)
-  //
-  //
-  // type Animal struct {
-  //   Date string
-  //   People string
-  // }
-  //
-  // fmt.Println(string(test))
-  // var animals []Animal
-  // err := json.Unmarshal(test, &animals)
-  // if err != nil {
-  //   fmt.Println("error:", err)
-  // }
-  // fmt.Printf("%+v", animals)
-//   fmt.Println(test)
+}
+
+func handler(w http.ResponseWriter, r *http.Request) {
+  w.Header().Set("Content-Type", "application/json")
+  http.ServeFile(w, r, "output.json")
+}
+
+func worker() {
+  for {
+    login(getCookies())
+    time.Sleep(time.Second * 60)
+  }
 }
 
 func main() {
-  login(getCookies())
+  go worker()
+
+  http.HandleFunc("/", handler)
+  http.ListenAndServe(":"+port, nil)
 }
