@@ -1,0 +1,67 @@
+{
+	"comment": "",
+	"ignore": "",
+	"package": [
+		{
+			"checksumSHA1": "XHsIh/AYw5E202RLCmmRKzlhud0=",
+			"path": "github.com/PuerkitoBio/goquery",
+			"revision": "2dc93891ab3bcc1dbc2cbf9bc6376c37f6e6f289",
+			"revisionTime": "2017-05-20T19:45:20Z"
+		},
+		{
+			"checksumSHA1": "tXab+HUnWLM0FXoi7aYgTzHxuu0=",
+			"path": "github.com/andybalholm/cascadia",
+			"revision": "349dd0209470eabd9514242c688c403c0926d266",
+			"revisionTime": "2016-12-24T14:14:13Z"
+		},
+		{
+			"checksumSHA1": "+vSQi+/5wnhXgFd4yIj4K07IGXM=",
+			"path": "github.com/headzoo/surf/agent",
+			"revision": "258b78a318a80b216e7d1033a8a4353341f7f4f8",
+			"revisionTime": "2017-03-20T10:43:56Z"
+		},
+		{
+			"checksumSHA1": "OsPHjI5/QOklHvtD2zYY4tFKELA=",
+			"path": "github.com/headzoo/surf/browser",
+			"revision": "258b78a318a80b216e7d1033a8a4353341f7f4f8",
+			"revisionTime": "2017-03-20T10:43:56Z"
+		},
+		{
+			"checksumSHA1": "hRnSyUe+i0ALGC+YBWyTYT04gR4=",
+			"path": "github.com/headzoo/surf/errors",
+			"revision": "258b78a318a80b216e7d1033a8a4353341f7f4f8",
+			"revisionTime": "2017-03-20T10:43:56Z"
+		},
+		{
+			"checksumSHA1": "+yNiQykQjO8OvljUAwIOg0UMpvg=",
+			"path": "github.com/headzoo/surf/jar",
+			"revision": "258b78a318a80b216e7d1033a8a4353341f7f4f8",
+			"revisionTime": "2017-03-20T10:43:56Z"
+		},
+		{
+			"checksumSHA1": "bs9383P0GeWa8d5tvV9tcFlIuHk=",
+			"path": "github.com/headzoo/surf/util",
+			"revision": "258b78a318a80b216e7d1033a8a4353341f7f4f8",
+			"revisionTime": "2017-03-20T10:43:56Z"
+		},
+		{
+			"checksumSHA1": "dcOJtT2YpM6/qNQUa+IGGjFUy0k=",
+			"path": "golang.org/x/net/html",
+			"revision": "3da985ce5951d99de868be4385f21ea6c2b22f24",
+			"revisionTime": "2017-05-27T09:53:06Z"
+		},
+		{
+			"checksumSHA1": "BBN+OcVpSYnOYWdUq9A952+dCZA=",
+			"path": "golang.org/x/net/html/atom",
+			"revision": "3da985ce5951d99de868be4385f21ea6c2b22f24",
+			"revisionTime": "2017-05-27T09:53:06Z"
+		},
+		{
+			"checksumSHA1": "ctL2+6nfp9wQPB688BHRwa5Nb8s=",
+			"path": "gopkg.in/headzoo/surf.v1",
+			"revision": "3ab5b77981eb350c4821694b70cddc90d59e791c",
+			"revisionTime": "2017-03-18T14:29:47Z"
+		}
+	],
+	"rootPath": "github.com/alexnewmannn/PureCount"
+}
