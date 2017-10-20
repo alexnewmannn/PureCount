@@ -12,11 +12,15 @@ import (
   "time"
   "os"
   "encoding/json"
+  "github.com/garyburd/redigo/redis"
+  "reflect"
+  "strconv"
 )
 
+var redisDb redis.Conn
 var port = os.Getenv("PORT")
 var user = os.Getenv("PURE_USER")
-var pin = os.Getenv("PURE_PIN")
+var pin = os.Getenv("PURE_PIN") // handle not having these
 
 func stringifyCookies(siteCookies []*http.Cookie) string {
   cookies := ""
@@ -117,13 +121,17 @@ func getMembers(cookies string, token string) {
   }
 
   r, err := gzip.NewReader(resp.Body)
-  r.Close()
-  body, _ := ioutil.ReadAll(r)
-  formatData(string(body))
+  if err != nil {
+    fmt.Println("error:", err)
+  } else {
+    r.Close()
+    body, _ := ioutil.ReadAll(r)
+    formatData(string(body))
+  }
 }
 
-func getTime() string {
-  return time.Now().Format(time.RFC3339)
+func getTime() int64 {
+  return time.Now().Unix()
 }
 
 func readMembers(body string) string {
@@ -146,27 +154,54 @@ func writeData(body string) {
     People string
   }
 
+  // v := int64(getTime())
+  time := strconv.FormatInt(getTime(), 10)
+
   group := Animal{
-    Date:     getTime(),
+    Date:     time,
     People:   readMembers(body),
   }
   var animals []Animal
   err := json.Unmarshal(jsonBlob, &animals)
   if err != nil {
-    fmt.Println("error:", err)
+    fmt.Println("error unmarshal:", err)
   }
 
   var test = append(animals, group)
   b, _ := json.Marshal(test)
 
   os.Stdout.Write(b)
+  n, redisErr := redisDb.Do("ZADD", "members", getTime(), time + ":" +  readMembers(body))
+  fmt.Println(n)
+  if redisErr != nil {
+    fmt.Println("error zadd:", redisErr)
+  }
 
+  scanRedis()
   ioutil.WriteFile("output.json", b, 0644)
+}
+
+func scanRedis() {
+  // values, err := redisDb.Do("ZRANGE", "members", 0, -1)
+  members, err := redis.Strings(redisDb.Do("ZRANGE", "members", 0, -1))
+
+  if err != nil {
+    fmt.Println("error zrange:", err)
+  }
+  fmt.Println(members)
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
   w.Header().Set("Content-Type", "application/json")
   http.ServeFile(w, r, "output.json")
+}
+
+func connectRedis() {
+  conn, err := redis.DialURL(os.Getenv("REDIS_URL"))
+  if err != nil {
+    fmt.Println("error:", err)
+  }
+  defer conn.Close()
 }
 
 func worker() {
@@ -178,7 +213,14 @@ func worker() {
 
 func main() {
   go worker()
-
+  // connectRedis()
+  var err error
+  redisDb, err = redis.DialURL(os.Getenv("REDIS_URL"))
+  // conn, err := redis.DialURL(os.Getenv("REDIS_URL"))
+  if err != nil {
+    fmt.Println("error:", err)
+  }
+  fmt.Println(reflect.TypeOf(redisDb).Kind())
   http.HandleFunc("/", handler)
-  http.ListenAndServe(":"+port, nil)
+  http.ListenAndServe("localhost:"+port, nil)
 }
