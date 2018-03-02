@@ -34,5 +34,5 @@ func membersHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	http.HandleFunc("/members", membersHandler)
 	http.HandleFunc("/", handler)
-	http.ListenAndServe("localhost:"+port, nil)
+	http.ListenAndServe(":"+port, nil)
 }
