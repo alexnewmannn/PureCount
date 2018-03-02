@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
@@ -15,8 +14,8 @@ import (
 	"gopkg.in/headzoo/surf.v1"
 )
 
-var user = Getenv("PURE_USER", "nononosir@gmail.com")
-var pin = Getenv("PURE_PIN", "heirsek")
+var user = Getenv("PURE_USER", "alexmnewman95@gmail.com")
+var pin = Getenv("PURE_PIN", "53510560")
 
 func getHeaders(cookies string, token string) http.Header {
 	return http.Header{
@@ -46,11 +45,10 @@ func readMembers(body string) string {
 	buf := bytes.NewBufferString(string(body))
 	doc, _ := goquery.NewDocumentFromReader(buf)
 	el := doc.Find(".heading.heading--level3.secondary-color.margin-none").Text()
-
 	return el
 }
 
-func writeData(body string) {
+func writeData(body string) string {
 	jsonBlob, _ := ioutil.ReadFile("./output.json")
 
 	type Count struct {
@@ -71,16 +69,11 @@ func writeData(body string) {
 	var appendData = append(counts, group)
 	b, _ := json.Marshal(appendData)
 
-	os.Stdout.Write(b)
-
 	ioutil.WriteFile("output.json", b, 0644)
+	return group.People
 }
 
-func formatData(body string) {
-	writeData(body)
-}
-
-func getMembers(cookies string, token string) {
+func getMembers(cookies string, token string) string {
 	req, err := http.NewRequest("GET", "https://www.puregym.com/members/", nil)
 	req.Header = getHeaders(cookies, token)
 
@@ -89,16 +82,16 @@ func getMembers(cookies string, token string) {
 
 	if nil != err {
 		fmt.Println("error", err)
-		return
+		return "error!"
 	}
 
 	r, err := gzip.NewReader(resp.Body)
 	r.Close()
 	body, _ := ioutil.ReadAll(r)
-	formatData(string(body))
+	return writeData(string(body))
 }
 
-func authenticate(siteCookies []*http.Cookie, token string) {
+func authenticate(siteCookies []*http.Cookie, token string) string {
 	cookies := StringifyCookies(siteCookies)
 	var details = []byte(`
     {
@@ -118,12 +111,12 @@ func authenticate(siteCookies []*http.Cookie, token string) {
 
 	if nil != err {
 		fmt.Println("Login has failed!", err)
-		return
+		return "Login has failed!"
 	}
 
 	cookies += StringifyCookies(resp.Cookies())
 
-	getMembers(cookies, token)
+	return getMembers(cookies, token)
 }
 
 func getSite() *browser.Browser {
@@ -145,7 +138,7 @@ func getCookies() ([]*http.Cookie, string) {
 	return cookies, token
 }
 
-// Creates cookies and logs into puregym
-func Login() {
-	authenticate(getCookies())
+// Login Creates cookies and logs into puregym
+func Login() string {
+	return authenticate(getCookies())
 }
